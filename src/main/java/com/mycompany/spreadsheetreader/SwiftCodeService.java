@@ -1,5 +1,6 @@
 package com.mycompany.spreadsheetreader;
 
+import com.mycompany.spreadsheetreader.exception.HeadquarterFlagMismatchException;
 import com.mycompany.spreadsheetreader.exception.SwiftCodeNotFoundException;
 import com.mycompany.spreadsheetreader.exception.InvalidSwiftCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,15 @@ public class SwiftCodeService {
         }
         if (!SwiftValidator.swiftValidator(newCode.getSwiftCode())) {
             throw new InvalidSwiftCodeException("Invalid SWIFT code format.");
+        }
+        boolean isActuallyHeadquarter = SwiftValidator.swiftIsHeadquarterValidator(newCode.getSwiftCode());
+
+        if (isActuallyHeadquarter && !newCode.getIsHeadquarter()) {
+            throw new HeadquarterFlagMismatchException(newCode.getSwiftCode(), true);
+        }
+
+        if (!isActuallyHeadquarter && newCode.getIsHeadquarter()) {
+            throw new HeadquarterFlagMismatchException(newCode.getSwiftCode(), false);
         }
         return swiftCodeRepository.save(newCode);
     }

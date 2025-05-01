@@ -68,8 +68,16 @@ public class GlobalExceptionHandler {
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("error", "Data integrity violation", "details", message));
-}
+    }
 
+    @ExceptionHandler(HeadquarterFlagMismatchException.class)
+    public ResponseEntity<?> handleHeadquarterMismatch(HeadquarterFlagMismatchException ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+            "error", "SWIFT code/headquarter mismatch",
+            "message", ex.getMessage()
+        ));
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleOtherErrors(Exception ex) {
         return ResponseEntity.status(500).body(Map.of(
