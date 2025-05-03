@@ -54,10 +54,7 @@ public class SwiftCodeService {
     }
 
     public void delete(String swiftCode) {
-        SwiftCode code = swiftCodeRepository.findBySwiftCode(swiftCode.toUpperCase());
-        if (code == null) {
-            throw new SwiftCodeNotFoundException("Cannot delete — SWIFT code not found: " + swiftCode);
-        }
+        SwiftCode code = getBySwiftCode(swiftCode);
         swiftCodeRepository.delete(code);
     }
     
