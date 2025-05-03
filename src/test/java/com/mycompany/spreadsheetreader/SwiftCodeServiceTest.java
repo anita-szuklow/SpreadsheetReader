@@ -79,9 +79,13 @@ class SwiftCodeServiceTest {
 
     static Stream<org.junit.jupiter.params.provider.Arguments> invalidSaveScenarios() {
         return Stream.of(
+            arguments("",             false, InvalidSwiftCodeException.class),
             arguments("BANK",         false, InvalidSwiftCodeException.class),
+            arguments("BANKPL1234",   false, InvalidSwiftCodeException.class),
+            arguments("BANKPL123456", false, InvalidSwiftCodeException.class),
             arguments("BANK1234567",  false, InvalidSwiftCodeException.class),
             arguments("BANKPLPWXXX",  false, HeadquarterFlagMismatchException.class),
+            arguments("BANKPLPW",     false, HeadquarterFlagMismatchException.class),
             arguments("BANKPLPW123",  true,  HeadquarterFlagMismatchException.class),
             arguments(EXISTING_CODE,  true,  DataIntegrityViolationException.class)
         );

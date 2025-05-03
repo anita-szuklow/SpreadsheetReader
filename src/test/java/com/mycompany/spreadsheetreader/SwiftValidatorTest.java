@@ -1,82 +1,57 @@
 package com.mycompany.spreadsheetreader;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SwiftValidatorTest {
+class SwiftValidatorTest {
 
-    @Test
-    void validSwiftCode_8Chars_shouldPass() {
-        assertTrue(SwiftValidator.swiftValidator("BANKPLPW"));
-    }
-
-    @Test
-    void validSwiftCode_11Chars_shouldPass() {
-        assertTrue(SwiftValidator.swiftValidator("BANKPLPWXXX"));
-    }
-
-    @Test
-    void invalidSwiftCode_tooShort_shouldFail() {
-        assertFalse(SwiftValidator.swiftValidator("BANK"));
-    }
-    
-    @Test
-    void invalidSwiftCode_blank_shouldFail() {
-        assertFalse(SwiftValidator.swiftValidator(""));
+    @ParameterizedTest(name = "[{index}] ''{0}'' is valid")
+    @ValueSource(strings = {
+        "BANKPLPW",       // 8 chars
+        "BANKPLPWXXX",    // 11 chars
+        "bankplpwxxx",    // lowercase
+        "bankplpwxxx "    // trailing space
+    })
+    void swiftValidator_validCodes_shouldReturnTrue(String code) {
+        assertTrue(SwiftValidator.swiftValidator(code));
     }
 
-    @Test
-    void invalidSwiftCode_null_shouldFail() {
-        assertFalse(SwiftValidator.swiftValidator(null));
+    @ParameterizedTest(name = "[{index}] ''{0}'' is invalid")
+    @NullAndEmptySource
+    @ValueSource(strings = {
+        "BANK",
+        "BANKPLPWXX",
+        "BANKPLPWXXX1",
+        "BANKPL@W",
+        "1ANKPLPWXXX",
+        "BANK2LPWXXX"
+    })
+    void swiftValidator_invalidCodes_shouldReturnFalse(String code) {
+        assertFalse(SwiftValidator.swiftValidator(code));
     }
 
-    @Test
-    void invalidSwiftCode_tooLong_shouldFail() {
-        assertFalse(SwiftValidator.swiftValidator("BANKPLPWXXX1"));
-    }
-    
-    @Test
-    void invalidSwiftCode_9Or10Chars_shouldFail() {
-        assertFalse(SwiftValidator.swiftValidator("BANKPLPWXX"));
-    }
-
-    @Test
-    void invalidSwiftCode_lowercase_shouldPassDueToTrimAndUppercase() {
-        assertTrue(SwiftValidator.swiftValidator("bankplpwxxx"));
+    @ParameterizedTest(name = "[{index}] ''{0}'' is HQ")
+    @ValueSource(strings = {
+        "BANKPLPWXXX",
+        "BANKPLPWXXX ",
+        "BANKPLPW",
+        "bankplpwxxx"
+    })
+    void swiftIsHeadquarterValidator_valid_shouldReturnTrue(String code) {
+        assertTrue(SwiftValidator.swiftIsHeadquarterValidator(code));
     }
 
-    @Test
-    void invalidSwiftCode_withSymbols_shouldFail() {
-        assertFalse(SwiftValidator.swiftValidator("BANKPL@W"));
-    }
-    
-    @Test
-    void invalidSwiftCode_withDigitsOnLetterOnlyPositions_shouldFail() {
-        assertFalse(SwiftValidator.swiftValidator("1ANKPLPWXXX"));
-    }
-
-    @Test
-    void isHeadquarterValidator_withXXX_shouldBeTrue() {
-        assertTrue(SwiftValidator.swiftIsHeadquarterValidator("BANKPLPWXXX"));
-    }
-    
-    @Test
-    void isHeadquarterValidator_8Chars_shouldBeTrue() {
-        assertTrue(SwiftValidator.swiftIsHeadquarterValidator("BANKPLPW"));
-    }
-
-    @Test
-    void isHeadquarterValidator_withBranchCode_shouldBeFalse() {
-        assertFalse(SwiftValidator.swiftIsHeadquarterValidator("BANKPLPW123"));
-    }
-    
-    @Test
-    void isHeadquarterValidator_lowercaseXXX_shouldBeTrue() {
-        assertTrue(SwiftValidator.swiftIsHeadquarterValidator("bankplpwxxx"));
-    }
-    
-    @Test
-    void isHeadquarterValidator_with1XX_shouldBeFalse() {
-        assertFalse(SwiftValidator.swiftIsHeadquarterValidator("BANKPLPW1XX"));
+    @ParameterizedTest(name = "[{index}] ''{0}'' is not HQ")
+    @NullAndEmptySource 
+    @ValueSource(strings = {
+        "BANKPLPW123",
+        "BANKPLPW1XX",
+        "BANKPLPXXX"
+    })
+    void swiftIsHeadquarterValidator_invalid_shouldReturnFalse(String code) {
+        assertFalse(SwiftValidator.swiftIsHeadquarterValidator(code));
     }
 }
