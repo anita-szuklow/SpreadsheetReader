@@ -23,6 +23,14 @@ public class GlobalExceptionHandler {
             "message", ex.getMessage()
         ));
     }
+    
+    @ExceptionHandler(InvalidIso2Exception.class)
+    public ResponseEntity<?> handleInvalidIso2(InvalidIso2Exception ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+            "error", "Invalid country ISO2 format",
+            "message", ex.getMessage()
+        ));
+    }
 
     @ExceptionHandler(SwiftCodeNotFoundException.class)
     public ResponseEntity<?> handleNotFound(SwiftCodeNotFoundException ex) {
@@ -31,7 +39,7 @@ public class GlobalExceptionHandler {
             "message", ex.getMessage()
         ));
     }
-
+    
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> handleInvalidJson(HttpMessageNotReadableException ex) {
         return ResponseEntity.badRequest().body(Map.of(
@@ -59,21 +67,23 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<?> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-    String message = ex.getMostSpecificCause().getMessage();
-    
-    if (message != null && message.contains("SWIFT code already exists")) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("error", "SWIFT code already exists, please provide a unique code."));
-    }
-
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error", "Data integrity violation", "details", message));
+        return ResponseEntity
+          .status(HttpStatus.CONFLICT)
+          .body(Map.of("error", "SWIFT code already exists, please provide a unique code."));
     }
 
     @ExceptionHandler(HeadquarterFlagMismatchException.class)
     public ResponseEntity<?> handleHeadquarterMismatch(HeadquarterFlagMismatchException ex) {
         return ResponseEntity.badRequest().body(Map.of(
             "error", "SWIFT code/headquarter mismatch",
+            "message", ex.getMessage()
+        ));
+    }
+    
+    @ExceptionHandler(CountryNotFoundException.class)
+    public ResponseEntity<?> handleCountryNotFound(CountryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+            "error", "Country not found",
             "message", ex.getMessage()
         ));
     }

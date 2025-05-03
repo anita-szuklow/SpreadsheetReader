@@ -1,8 +1,8 @@
-package com.mycompany.spreadsheetreader;
+package com.mycompany.spreadsheetreader.dto;
 
 import java.util.List;
 
-class SwiftCodeDto {
+public class SwiftCodeDto {
     private String address;
     private String bankName;
     private String countryISO2;

@@ -1,5 +1,6 @@
 package com.mycompany.spreadsheetreader;
 
+import com.mycompany.spreadsheetreader.dto.*;
 import java.util.List;
 import java.util.stream.Collectors;
 

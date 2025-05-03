@@ -1,6 +1,7 @@
 package com.mycompany.spreadsheetreader;
 
 import com.mycompany.spreadsheetreader.exception.HeadquarterFlagMismatchException;
+import com.mycompany.spreadsheetreader.exception.InvalidIso2Exception;
 import com.mycompany.spreadsheetreader.exception.SwiftCodeNotFoundException;
 import com.mycompany.spreadsheetreader.exception.InvalidSwiftCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class SwiftCodeService {
     }
 
     public List<SwiftCode> getByCountry(String iso2) {
+        if (!SwiftValidator.iso2Validator(iso2)) {
+            throw new InvalidIso2Exception("Country ISO2 code must be exactly 2 letters long");
+        }
         return swiftCodeRepository.findByCountryISO2(iso2.toUpperCase());
     }
 

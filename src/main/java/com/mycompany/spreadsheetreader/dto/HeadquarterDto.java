@@ -1,4 +1,4 @@
-package com.mycompany.spreadsheetreader;
+package com.mycompany.spreadsheetreader.dto;
 
 import java.util.List;
 
