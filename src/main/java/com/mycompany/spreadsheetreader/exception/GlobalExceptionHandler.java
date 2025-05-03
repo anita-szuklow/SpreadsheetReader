@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
     String message = ex.getMostSpecificCause().getMessage();
     
-    if (message != null && message.toLowerCase().contains("constraint") && message.toLowerCase().contains("swift_code")) {
+    if (message != null && message.contains("SWIFT code already exists")) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", "SWIFT code already exists, please provide a unique code."));
     }

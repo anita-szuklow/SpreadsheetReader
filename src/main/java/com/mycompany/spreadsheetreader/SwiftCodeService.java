@@ -59,7 +59,7 @@ public class SwiftCodeService {
     }
     
     public List<SwiftCode> getBranchesByPrefix(String prefix) {
-    return swiftCodeRepository.findBySwiftCodeStartingWithAndIsHeadquarterFalse(prefix);
+    return swiftCodeRepository.findBySwiftCodeStartingWithAndIsHeadquarterFalse(prefix.toUpperCase());
     }
     
 }

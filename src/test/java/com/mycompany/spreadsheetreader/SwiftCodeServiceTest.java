@@ -1,16 +1,19 @@
 package com.mycompany.spreadsheetreader;
 
-import static com.mycompany.spreadsheetreader.testutil.SwiftCodeTestFactory.swift;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.mycompany.spreadsheetreader.exception.HeadquarterFlagMismatchException;
 import com.mycompany.spreadsheetreader.exception.InvalidSwiftCodeException;
 import com.mycompany.spreadsheetreader.exception.SwiftCodeNotFoundException;
+
+import static com.mycompany.spreadsheetreader.testutil.SwiftCodeTestFactory.swift;
+import static com.mycompany.spreadsheetreader.testutil.TestDataSeeder.seedBranches;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -77,7 +80,7 @@ class SwiftCodeServiceTest {
         assertEquals(2, repository.count(), "two rows after successful save");
     }
 
-    static Stream<org.junit.jupiter.params.provider.Arguments> invalidSaveScenarios() {
+    static Stream<Arguments> invalidSaveScenarios() {
         return Stream.of(
             arguments("",             false, InvalidSwiftCodeException.class),
             arguments("BANK",         false, InvalidSwiftCodeException.class),
@@ -107,73 +110,113 @@ class SwiftCodeServiceTest {
             .build();
 
         assertThrows(exceptionClass, () -> service.save(input));
+        assertEquals(1, repository.count(), "after a failed save, I still only have my one setup entry");
     }
 
-    @Test
-    void getBySwiftCode_existing_shouldReturnEntity() {
-        SwiftCode found = service.getBySwiftCode(EXISTING_CODE);
+    @ParameterizedTest(name = "getBySwiftCode(“{0}”) returns entity")
+    @MethodSource("caseInsensitiveCodes")
+    void getBySwiftCode_caseInsensitive_shouldReturnEntity(String code) {
+        SwiftCode found = service.getBySwiftCode(code);
         assertEquals("Mock Bank", found.getBankName());
+        assertEquals(EXISTING_CODE, found.getSwiftCode());
     }
 
-    @Test
-    void getBySwiftCode_missing_shouldThrowNotFound() {
-        assertThrows(
-            SwiftCodeNotFoundException.class,
-            () -> service.getBySwiftCode("UNKNOWN1234")
+    static Stream<String> caseInsensitiveCodes() {
+        return Stream.of(
+            EXISTING_CODE,
+            EXISTING_CODE.toLowerCase()
+        );
+    }
+    
+    @ParameterizedTest(name = "[{index}] getBySwiftCode(''{0}'') → {1}")
+    @MethodSource("provideBadAndMissingSwiftCodes")
+    void getBySwiftCode_errors_throwExpected(
+        String code,
+        Class<? extends RuntimeException> expectedException
+    ) {
+        assertThrows(expectedException, () -> service.getBySwiftCode(code));
+    }
+    
+    static Stream<Arguments> provideBadAndMissingSwiftCodes() {
+        return Stream.of(
+            arguments(null,             InvalidSwiftCodeException.class),
+            arguments("",               InvalidSwiftCodeException.class),
+            arguments("BANK",           InvalidSwiftCodeException.class),
+            arguments("BANKPLPWXX",     InvalidSwiftCodeException.class),
+            arguments("BANKPL@W123",    InvalidSwiftCodeException.class),
+            arguments("ABCDEFGH",       SwiftCodeNotFoundException.class),
+            arguments("ABCDEFGHXXX",    SwiftCodeNotFoundException.class),
+            arguments("abcdefghxxx",    SwiftCodeNotFoundException.class)
         );
     }
 
-    @Test
-    void delete_existing_shouldRemoveEntity() {
-        service.delete(EXISTING_CODE);
+    @ParameterizedTest(name = "delete_existing(“{0}”) returns entity")
+    @MethodSource("caseInsensitiveCodes")
+    void delete_existing_caseInsensitive_shouldRemoveEntity(String code) {
+        service.delete(code);
         assertEquals(0, repository.count(), "should be empty after delete");
         assertThrows(
             SwiftCodeNotFoundException.class,
-            () -> service.getBySwiftCode(EXISTING_CODE)
+            () -> service.getBySwiftCode(code),
+            "getBySwiftCode(" + code + ") should now be not found"
+        );
+    }
+    
+    @ParameterizedTest(name = "[{index}] delete(''{0}'') → throws {1}")
+    @MethodSource("provideBadAndMissingSwiftCodes")
+    void delete_errors_throwExpected(
+        String code,
+        Class<? extends RuntimeException> expectedException
+    ) {
+        assertThrows(expectedException, () -> service.delete(code));
+    }
+
+    static Stream<Arguments> countryLookupScenarios() {
+        return Stream.of(
+            arguments("PL",   0, 1),
+            arguments("pl",   0, 1),
+            arguments("PL",   1, 2),
+            arguments("PL",   2, 3),
+            arguments("ZZ",   0, 0)
         );
     }
 
-    @Test
-    void getByCountry_multipleMatches_shouldReturnList() {
-        // insert a second PL record
-        service.save(
-            swift("OTHERPLPW12")
-              .bank("Other Bank")
-              .address("Other Addr")
-              .countryISO2("pl")
-              .countryName("poland")
-              .headquarter(false)
-              .build()
-        );
+    @ParameterizedTest(name = "[{index}] getByCountry(''{0}'') +{1} branches → {2}")
+    @MethodSource("countryLookupScenarios")
+    void getByCountry_shouldReturnExpectedCount(String iso,
+                                                int extras,
+                                                int expectedCount) {
+        seedBranches(service, EXISTING_CODE.substring(0, 8), extras);
 
-        List<SwiftCode> results = service.getByCountry("PL");
-        assertEquals(2, results.size());
+        List<SwiftCode> results = service.getByCountry(iso);
+        assertEquals(expectedCount, results.size(),
+            () -> "getByCountry(" + iso + ") should return " + expectedCount);
+    }
+    
+    static Stream<Arguments> branchLookupScenarios() {
+        return Stream.of(
+            arguments("MOCKPLPW",       0, 0),
+            arguments("MOCKPLPW",       1, 1),
+            arguments("MOCKPLPW",       2, 2)
+        );
     }
 
-    @Test
-    void getBranchesByPrefix_onlyBranchesReturned() {
-        // HQ already exists as MOCKPLPWXXX
-        service.save(
-            swift("MOCKPLPW001")
-              .bank("Branch1")
-              .address("Addr1")
-              .countryISO2("pl")
-              .countryName("poland")
-              .headquarter(false)
-              .build()
-        );
-        service.save(
-            swift("MOCKPLPW002")
-              .bank("Branch2")
-              .address("Addr2")
-              .countryISO2("pl")
-              .countryName("poland")
-              .headquarter(false)
-              .build()
-        );
+    @ParameterizedTest(name = "[{index}] getBranchesByPrefix(''{0}'') +{1} → {2}")
+    @MethodSource("branchLookupScenarios")
+    void getBranchesByPrefix_parametrized(
+        String prefix,
+        int branchExtras,
+        int expectedCount
+    ) {
+        // drop your for-loop here…
+        seedBranches(service, prefix, branchExtras);
 
-        List<SwiftCode> branches = service.getBranchesByPrefix("MOCKPLPW");
-        assertEquals(2, branches.size());
-        assertTrue(branches.stream().allMatch(c -> !c.getIsHeadquarter()));
+        var branches = service.getBranchesByPrefix(prefix);
+        assertEquals(expectedCount, branches.size(),
+            () -> "prefix=" + prefix + ", extras=" + branchExtras);
+        if (expectedCount > 0) {
+            assertTrue(branches.stream().noneMatch(SwiftCode::getIsHeadquarter),
+                       "all returned must be non-headquarters");
+        }
     }
 }
