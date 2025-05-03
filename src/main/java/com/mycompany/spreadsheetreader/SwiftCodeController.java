@@ -33,8 +33,13 @@ public class SwiftCodeController {
     @GetMapping("/country/{countryISO2code}")
     public ResponseEntity<CountryDto> getByCountryISO2(@PathVariable("countryISO2code") String countryISO2) {
         List<SwiftCode> codes = swiftCodeService.getByCountry(countryISO2);
-        SwiftCode first = codes.get(0); // Already validated to be non-empty
-        CountryDto dto = DtoMapper.toCountryDto(first);
+        CountryDto dto = new CountryDto();
+        dto.setCountryISO2(countryISO2.toUpperCase());
+            if (!codes.isEmpty()) {
+                dto.setCountryName(codes.get(0).getCountryName());
+            } else {
+                dto.setCountryName("Unknown"); 
+            }
         dto.setSwiftCodes(DtoMapper.toBranchDtoList(codes));
         return ResponseEntity.ok(dto);
     }
