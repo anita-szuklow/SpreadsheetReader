@@ -1,0 +1,12 @@
+target/
+*.iml
+.idea/
+*.log
+*.tmp
+*.bak
+*.swp
+nbactions.xml
+*.md
+Dockerfile
+docker-compose.yml
+

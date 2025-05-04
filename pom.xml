@@ -77,7 +77,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                <mainClass>com.mycompany.familytaskmanager.FamilyTaskManagerApplication</mainClass>
+                <mainClass>com.mycompany.spreadsheetreader.SpreadsheetReaderApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
