@@ -2,6 +2,8 @@ package com.mycompany.spreadsheetreader;
 
 import com.mycompany.spreadsheetreader.dto.*;
 import com.mycompany.spreadsheetreader.exception.*;
+import org.springframework.context.annotation.Import;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,8 +21,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 
-@WebMvcTest(SwiftCodeController.class)
-@AutoConfigureMockMvc(addFilters = false)        
+@WebMvcTest(controllers = SwiftCodeController.class,
+            useDefaultFilters = false)
+@AutoConfigureMockMvc(addFilters = false)
+@Import({ SwiftCodeController.class,
+          GlobalExceptionHandler.class  })
+
 class SwiftCodeControllerUnitTest {
 
   @Autowired
@@ -28,6 +34,12 @@ class SwiftCodeControllerUnitTest {
 
   @MockBean
   SwiftCodeService service;
+  
+  @MockBean
+  InputSpreadsheetReader inputSpreadsheetReader;
+  
+  @MockBean 
+  SwiftCodeRepository swiftCodeRepository;
 
   @Test  
   void getBranchByCode_shouldReturnBranchDto() throws Exception {

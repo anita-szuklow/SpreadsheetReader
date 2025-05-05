@@ -18,8 +18,6 @@ public class InputSpreadsheetReader {
     this.swiftCodeRepository = swiftCodeRepository;
     }
     
-    
-    
     public void readAndSaveSwiftCodes(){
     String filePath = "data/Interns_2025_SWIFT_CODES.xlsx";
     List<SwiftCode> swiftCodeList = new ArrayList<>();
@@ -38,7 +36,7 @@ public class InputSpreadsheetReader {
            swiftCode.setSwiftCode(r.getCell(1).getStringCellValue().trim());
            swiftCode.setBankName(r.getCell(3).getStringCellValue().trim());
            if (r.getCell(4).getStringCellValue().isBlank()) {
-                swiftCode.setAddress(r.getCell(5).getStringCellValue().trim()); //if the address cell is blank, I use the town name from next column to provide any data
+                swiftCode.setAddress(r.getCell(5).getStringCellValue().trim()); //if the address cell is blank, I use the town name from the next column to provide any data
               } else {
                 swiftCode.setAddress(r.getCell(4).getStringCellValue().trim());
               }

@@ -46,15 +46,13 @@ class SwiftCodeControllerIntegrationTest {
 
         @Test
         void validPatternButMissing_shouldReturn404() throws Exception {
-            // 8‐char code matches our SWIFT pattern but isn't in the DB
-            mockMvc.perform(get("/v1/swift-codes/ABCDEFGH"))
+            mockMvc.perform(get("/v1/swift-codes/ABCDEFGH123"))
                    .andExpect(status().isNotFound())
                    .andExpect(jsonPath("$.error").value("SWIFT code not found"));
         }
 
         @Test
         void invalidPattern_shouldReturn400() throws Exception {
-            // 10‐char code fails our SWIFT regex => BadRequest
             mockMvc.perform(get("/v1/swift-codes/ABCDEFGHXX"))
                    .andExpect(status().isBadRequest())
                    .andExpect(jsonPath("$.error").value("Invalid SWIFT code format"));
@@ -62,7 +60,6 @@ class SwiftCodeControllerIntegrationTest {
 
         @Test
         void headquarterWithBranches_shouldReturnBranchesArray() throws Exception {
-            // add two branches
             service.save(
               swift("MOCKPLPW001")
                 .bank("Branch1")
@@ -90,12 +87,19 @@ class SwiftCodeControllerIntegrationTest {
                    .andExpect(jsonPath("$.branches.length()").value(2));
         }
     }
+    
+    @Test
+    void getByCountry_shouldReturnList() throws Exception {
+        mockMvc.perform(get("/v1/swift-codes/country/pl"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.countryISO2").value("PL"))
+               .andExpect(jsonPath("$.swiftCodes").isArray());
+    }
 
     @Nested class Create {
 
         @Test
         void validPayload_shouldSaveAndReturnMessage() throws Exception {
-            // use an 8‐char SWIFT so it passes @Pattern
             var newCode = swift("NEWAPLPL")
                .bank("New Bank")
                .address("New Addr")
@@ -113,14 +117,12 @@ class SwiftCodeControllerIntegrationTest {
                    .andExpect(jsonPath("$.message")
                        .value("SWIFT code saved successfully"));
 
-            // sanity‐check it really landed in the DB
             var fromDb = repository.findBySwiftCode("NEWAPLPL");
             assertThat(fromDb).isNotNull();
         }
 
         @Test
         void duplicateSwift_shouldReturn409Conflict() throws Exception {
-            // HQ_CODE was added in @BeforeEach
             var dup = swift(HQ_CODE)
                .bank("Dup Bank")
                .address("Dup Addr")
@@ -138,6 +140,27 @@ class SwiftCodeControllerIntegrationTest {
                    .andExpect(jsonPath("$.error")
                        .value("SWIFT code already exists, please provide a unique code."));
         }
+        
+        @Test
+        void postMissingField_shouldReturn400AndValidationErrors() throws Exception {
+            String badPayload = """
+              {
+                  "address": "Some address 3",
+                  "bankName": "Bank Name 3",
+                  "countryISO2": "",
+                  "countryName": "POLAND",
+                  "isHeadquarter": false,
+                  "swiftCode" : "ABCDPLP1004"
+              }
+              """;
+
+            mockMvc.perform(post("/v1/swift-codes")
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .content(badPayload))
+                   .andExpect(status().isBadRequest())
+                   .andExpect(jsonPath("$.error").value("Validation failed"));
+        }
+        
     }
 
     @Nested class Delete {
