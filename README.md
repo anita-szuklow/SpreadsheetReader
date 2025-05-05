@@ -75,22 +75,22 @@ SpreadsheetReader
 1. Clone the repository:  
 ```bash
 git clone https://github.com/anita-szuklow/SpreadsheetReader.git
-cd SpreadsheetReader
+cd SpreadsheetReader```
 2. (If you want to run locally, no Docker)
 ```bash
-mvn clean package
+mvn clean package```
 3. Place the spreadsheet (Interns_2025_SWIFT_CODES.xlsx) inside the /data directory of the project
 
 ## Running 
 
 With Docker:
 ```bash
-docker-compose up --build
+docker-compose up --build```
 
 Locally (no Docker):
 Start a local MySQL instance and ensure it's reachable at jdbc:mysql://localhost:3306/swiftcodesdb
 ```bash
-mvn spring-boot:run 
+mvn spring-boot:run ```
 
 The application will:
 
@@ -115,7 +115,7 @@ If you need to override, set the usual Spring Boot properties via environment va
 
 Locally: 
 ```bash
-mvn clean test
+mvn clean test```
 
 ## API Endpoints
 
