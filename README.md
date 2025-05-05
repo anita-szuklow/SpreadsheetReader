@@ -117,6 +117,12 @@ If you need to override, set the usual Spring Boot properties via environment va
 
 ## Testing
 
+With Docker:
+```bash
+docker compose up -d db
+docker compose run --rm tester
+```
+
 Locally: 
 ```bash
 mvn clean test

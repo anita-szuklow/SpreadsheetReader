@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   db:
@@ -38,6 +38,23 @@ services:
       SPRING_SECURITY_USER_NAME: anita
       SPRING_SECURITY_USER_PASSWORD: password123
       SERVER_PORT: 8080
+      
+  tester:
+    image: maven:3.9.4-eclipse-temurin-21
+    working_dir: /app
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint:
+      - mvn
+      - test
+      - -Dspring.datasource.url=jdbc:mysql://db:3306/swiftcodesdb
+      - -Dspring.datasource.username=root
+      - -Dspring.datasource.password=
+    profiles:
+      - test
 
 volumes:
   mysqldata:
