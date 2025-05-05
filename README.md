@@ -150,9 +150,3 @@ Detailed and human-readable error responses are returned for:
 Missing or invalid fields
 Duplicated entries
 Format mismatches (e.g., ISO2 or SWIFT code)
-
-##Status
-Ready for submission.
-Fully functional and tested.
-Dockerized and self-contained.
-
