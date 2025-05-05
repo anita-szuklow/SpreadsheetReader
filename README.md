@@ -68,7 +68,7 @@ SpreadsheetReader
 ├── docker-compose.yml
 ├── nbactions.xml
 └── pom.xml
-
+```
 
 ## Setup instructions:
 
